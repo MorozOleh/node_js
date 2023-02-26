@@ -1,10 +1,10 @@
 const express = require("express");
-const { typography } = require("../template");
+const path = require("path");
 
 const router = express.Router();
 
 router.use((_, res) => {
-  res.status(404).send(typography({ element: "h1", text: "Page not found" }));
+  res.status(404).sendFile(path.join(__dirname, "../", "views", "404.html"));
 });
 
 module.exports = router;
