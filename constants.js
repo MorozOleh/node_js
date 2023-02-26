@@ -1,5 +1,5 @@
 const ROUT_PATH = {
-  home: "/",
+  root: "/",
   about: "/about",
   product: "/product",
   addProduct: "/add-product",
