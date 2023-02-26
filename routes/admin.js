@@ -1,12 +1,12 @@
 const express = require("express");
-const { ROUT_PATH } = require("../constants");
+const { ROUT_PATH, ADMIN_ACTION_ROUT_PATH } = require("../constants");
 const { htmlBone, typography, input, button, form } = require("../template");
 
 const router = express.Router();
 
 router.post(ROUT_PATH.product, (req, res) => {
   console.log(req.body);
-  res.redirect("/");
+  res.redirect(ROUT_PATH.home);
 });
 
 router.use(ROUT_PATH.addProduct, (_, res) => {
@@ -16,7 +16,7 @@ router.use(ROUT_PATH.addProduct, (_, res) => {
       body: [
         typography({ element: "h1", text: "Add product page" }),
         form({
-          action: ROUT_PATH.product,
+          action: ADMIN_ACTION_ROUT_PATH.product,
           method: "POST",
           fields: [
             input({ name: "title", type: "text", class: "input" }),
