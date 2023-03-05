@@ -1,5 +1,7 @@
 const path = require("path");
 const fs = require("fs");
+const { v4: uuidv4 } = require("uuid");
+const Cart = require("./cart");
 
 const productDataPath = path.join(
   path.dirname(require.main.filename),
@@ -7,7 +9,7 @@ const productDataPath = path.join(
   "products.json"
 );
 
-const getProductsFromFile = (cb) => {
+const getProductsFromFileThroughCb = (cb) => {
   fs.readFile(productDataPath, (err, fileContent) => {
     if (err) {
       cb([]);
@@ -17,28 +19,59 @@ const getProductsFromFile = (cb) => {
   });
 };
 
+const writeProductsToFile = (data) => {
+  fs.writeFile(productDataPath, JSON.stringify(data), (err) => {
+    if (err) {
+      console.error("error occurred: ", err);
+    }
+  });
+};
+
 module.exports = class Product {
-  constructor(title) {
+  constructor(id, title, imageUrl, description, price) {
+    this.id = id;
     this.title = title;
+    this.imageUrl = imageUrl;
+    this.description = description;
+    this.price = price;
   }
 
   save() {
-    getProductsFromFile((products) => {
-      products.push(this);
-      fs.writeFile(productDataPath, JSON.stringify(products), (err) => {
-        if (err) {
-          console.error("error occurred: ", err);
-        }
-      });
+    getProductsFromFileThroughCb((products) => {
+      if (this.id) {
+        const existingProductIndex = products.findIndex(
+          ({ id }) => id === this.id
+        );
+
+        const updatedProducts = [...products];
+        updatedProducts[existingProductIndex] = this;
+        writeProductsToFile(updatedProducts);
+      } else {
+        this.id = uuidv4();
+        products.push(this);
+        writeProductsToFile(products);
+      }
     });
   }
 
   // this one is called not on instance but on entire class;
   static fetchAll(cb) {
-    getProductsFromFile(cb);
+    getProductsFromFileThroughCb(cb);
   }
 
-  whatIsThis() {
-    console.log("what is this", this);
+  static deleteById(id) {
+    getProductsFromFileThroughCb((products) => {
+      const deletedProduct = products.find((product) => product.id === id);
+      const updatedProducts = products.filter((product) => product.id !== id);
+      writeProductsToFile(updatedProducts);
+      Cart.deleteProduct(id, deletedProduct.price);
+    });
+  }
+
+  static findById(id, cb) {
+    getProductsFromFileThroughCb((products) => {
+      const product = products.find((item) => item.id === id);
+      cb(product);
+    });
   }
 };
